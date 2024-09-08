@@ -10,12 +10,21 @@ use App\Models\OrderHistory;
 use Illuminate\Support\Facades\Http;
 use App\Models\User;
 use App\Notifications\OrderNotify;
+use Symfony\Component\Process\Process;
+use Symfony\Component\Process\Exception\ProcessFailedException;
 
 class ClientController extends Controller
 {
     public function __construct()
     {
-        $this->ip_address  = trim(shell_exec("dig +short myip.opendns.com @resolver1.opendns.com"));
+        try {
+            $process = new Process(['dig', '+short', 'myip.opendns.com', '@resolver1.opendns.com']);
+            $process->mustRun();
+            $this->ip_address = trim($process->getOutput());
+        } catch (ProcessFailedException $exception) {
+            // 处理错误,例如记录日志
+            $this->ip_address = '未知';
+        }
     }
    public function index()
     {
